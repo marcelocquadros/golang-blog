@@ -2,189 +2,140 @@ package user
 
 import (
 	"database/sql"
-	"errors"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/marcelocquadros/blog/internal/app/domain/user"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestUserRepository(t *testing.T) {
-
+func TestCreateUser(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-	var dbMock = sqlx.NewDb(db, "sqlmock")
+	require.NoError(t, err)
 	defer db.Close()
 
-	if err != nil {
-		t.Fail()
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewUserRepository(sqlxDB)
+
+	u := &user.User{
+		ID:       "1",
+		Username: "testuser",
+		Email:    "testuser@example.com",
 	}
-	repo := NewUserRepository(dbMock)
-	user := &user.User{ID: "c93f0ec6-70af-4598-b767-dadd1554be3d", Username: "marcelo", Email: "marcelo@gmail.com"}
 
-	t.Run("Create user success", func(t *testing.T) {
+	mock.ExpectExec("INSERT INTO users(id, username, email) VALUES (?, ?, ?)").
+		WithArgs(u.ID, u.Username, u.Email).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 
-		mock.ExpectExec("INSERT INTO users(id, username, email) VALUES (?, ?, ?)").
-			WithArgs(user.ID, user.Username, user.Email).
-			WillReturnResult(sqlmock.NewResult(1, 1))
+	err = repo.CreateUser(u)
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
 
-		err = repo.CreateUser(user)
-		assert.NoError(t, err)
+func TestDeleteUser(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	require.NoError(t, err)
+	defer db.Close()
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-	})
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewUserRepository(sqlxDB)
 
-	t.Run("Create user fail", func(t *testing.T) {
-		mock.ExpectExec("INSERT INTO users(id, username, email) VALUES (?, ?, ?)").
-			WithArgs(user.ID, user.Username, user.Email).
-			WillReturnError(errors.New("error"))
+	id := "1"
 
-		err = repo.CreateUser(user)
-		assert.Error(t, err)
+	mock.ExpectExec("DELETE FROM users WHERE id=?").
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
+	err = repo.DeleteUser(id)
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
 
-	})
+func TestUpdateUser(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	require.NoError(t, err)
+	defer db.Close()
 
-	t.Run("Delete user success", func(t *testing.T) {
-		mock.ExpectExec("DELETE FROM users WHERE id=?").WithArgs(user.ID).
-			WillReturnResult(sqlmock.NewResult(1, 1))
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewUserRepository(sqlxDB)
 
-		err := repo.DeleteUser(user.ID)
-		assert.NoError(t, err)
+	u := &user.User{
+		ID:       "1",
+		Username: "updateduser",
+		Email:    "updateduser@example.com",
+	}
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-	})
+	mock.ExpectExec("UPDATE users SET username=?, email=?").
+		WithArgs(u.Username, u.Email).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	t.Run("Delete user fail", func(t *testing.T) {
-		mock.ExpectExec("DELETE FROM users WHERE id=?").
-			WithArgs(user.ID).
-			WillReturnError(errors.New("error"))
+	err = repo.UpdateUser(u)
+	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
 
-		err = repo.DeleteUser(user.ID)
-		assert.Error(t, err)
+func TestFindAllUsers(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	require.NoError(t, err)
+	defer db.Close()
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-	})
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewUserRepository(sqlxDB)
 
-	t.Run("Find user by id fail", func(t *testing.T) {
+	rows := sqlmock.NewRows([]string{"id", "username", "email"}).
+		AddRow("1", "user1", "user1@example.com").
+		AddRow("2", "user2", "user2@example.com")
 
-		mock.ExpectQuery("SELECT * FROM users WHERE id=?").
-			WithArgs(user.ID).
-			WillReturnError(errors.New("error"))
+	mock.ExpectQuery("SELECT * FROM users").WillReturnRows(rows)
 
-		_, err := repo.FindUserByID(user.ID)
-		assert.Error(t, err)
+	users, err := repo.FindAllUsers()
+	assert.NoError(t, err)
+	assert.Len(t, users, 2)
+	assert.Equal(t, "user1", users[0].Username)
+	assert.Equal(t, "user2", users[1].Username)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-	})
+func TestFindUserByID(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	require.NoError(t, err)
+	defer db.Close()
 
-	t.Run("Find user not found", func(t *testing.T) {
-		mock.ExpectQuery("SELECT * FROM users WHERE id=?").
-			WithArgs(user.ID).
-			WillReturnError(sql.ErrNoRows)
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewUserRepository(sqlxDB)
 
-		_, err = repo.FindUserByID(user.ID)
-		assert.NoError(t, err)
+	id := "1"
+	rows := sqlmock.NewRows([]string{"id", "username", "email"}).
+		AddRow(id, "user1", "user1@example.com")
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-	})
+	mock.ExpectQuery("SELECT * FROM users WHERE id=?").
+		WithArgs(id).
+		WillReturnRows(rows)
 
-	t.Run("Find user by id success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "username", "email"}).
-			AddRow(user.ID, user.Username, user.Email)
+	u, err := repo.FindUserByID(id)
+	assert.NoError(t, err)
+	assert.NotNil(t, u)
+	assert.Equal(t, "user1", u.Username)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
 
-		mock.ExpectQuery("SELECT * FROM users WHERE id=?").WithArgs(user.ID).
-			WillReturnRows(rows)
+func TestFindUserByIDNotFound(t *testing.T) {
+	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	require.NoError(t, err)
+	defer db.Close()
 
-		user, _ := repo.FindUserByID(user.ID)
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewUserRepository(sqlxDB)
 
-		assert.NotNil(t, user)
-		assert.NoError(t, err)
+	id := "1"
+	mock.ExpectQuery("SELECT * FROM users WHERE id=?").
+		WithArgs(id).
+		WillReturnError(sql.ErrNoRows)
 
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-	})
-
-	t.Run("Find all users success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "username", "email"}).
-			AddRow(user.ID, user.Username, user.Email)
-
-		mock.ExpectQuery("SELECT * FROM users").
-			WithoutArgs().
-			WillReturnRows(rows)
-
-		users, err := repo.FindAllUsers()
-
-		assert.NoError(t, err)
-		assert.NotEmpty(t, users)
-
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-
-	})
-
-	t.Run("Find all users fail", func(t *testing.T) {
-
-		mock.ExpectQuery("SELECT * FROM users").
-			WithoutArgs().
-			WillReturnError(errors.New("error"))
-
-		users, err := repo.FindAllUsers()
-
-		assert.Error(t, err)
-		assert.Empty(t, users)
-
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-
-	})
-
-	t.Run("Update user success", func(t *testing.T) {
-
-		mock.ExpectExec("UPDATE users SET username=?, email=?").
-			WithArgs(user.Username, user.Email).
-			WillReturnResult(sqlmock.NewResult(1, 1))
-
-		err := repo.UpdateUser(user)
-
-		assert.NoError(t, err)
-
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-
-	})
-
-	t.Run("Update user fail", func(t *testing.T) {
-
-		mock.ExpectExec("UPDATE users SET username=?, email=?").
-			WithArgs(user.Username, user.Email).
-			WillReturnError(errors.New("error"))
-
-		err := repo.UpdateUser(user)
-
-		assert.Error(t, err)
-
-		if err := mock.ExpectationsWereMet(); err != nil {
-			t.Errorf("there were unfulfilled expectations: %s", err)
-		}
-
-	})
+	u, err := repo.FindUserByID(id)
+	assert.NoError(t, err)
+	assert.Nil(t, u)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }

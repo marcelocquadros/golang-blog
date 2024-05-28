@@ -41,7 +41,7 @@ func (ur userRepository) UpdateUser(u *user.User) error {
 }
 
 func (ur userRepository) FindAllUsers() ([]user.User, error) {
-	users := []user.User{}
+	users := make([]user.User, 0)
 	if err := ur.db.Select(&users, "SELECT * FROM users"); err != nil {
 		return []user.User{}, err
 	}

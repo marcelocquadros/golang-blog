@@ -20,8 +20,8 @@ type (
 		ID       string
 		Title    string
 		Content  string
-		ImageURL string
-		UserID   string
+		ImageURL string `db:"image_url"`
+		UserID   string `db:"user_id"`
 		Likes    int64
 		Dislikes int64
 	}
@@ -31,7 +31,7 @@ type (
 		UpdatePost(p Post) error
 		DeletePost(id string) error
 		FindAllPosts() ([]Post, error)
-		FindPostsByID() (*Post, error)
+		FindPostsByID(id string) (*Post, error)
 	}
 )
 
