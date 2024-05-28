@@ -20,7 +20,7 @@ func TestCreatePost(t *testing.T) {
 	sqlxDB := sqlx.NewDb(db, "sqlmock")
 	repo := NewPostRepository(sqlxDB)
 
-	p := post.Post{
+	p := &post.Post{
 		ID:       "1",
 		Title:    "Test Title",
 		Content:  "Test Content",
@@ -55,7 +55,7 @@ func TestUpdatePost(t *testing.T) {
 	sqlxDB := sqlx.NewDb(db, "sqlmock")
 	repo := NewPostRepository(sqlxDB)
 
-	p := post.Post{
+	p := &post.Post{
 		ID:       "1",
 		Title:    "Updated Title",
 		Content:  "Updated Content",

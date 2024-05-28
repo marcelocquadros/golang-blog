@@ -27,8 +27,8 @@ type (
 	}
 
 	PostRepository interface {
-		CreatePost(p Post) error
-		UpdatePost(p Post) error
+		CreatePost(p *Post) error
+		UpdatePost(p *Post) error
 		DeletePost(id string) error
 		FindAllPosts() ([]Post, error)
 		FindPostsByID(id string) (*Post, error)
