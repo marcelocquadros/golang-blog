@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"errors"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -32,6 +33,16 @@ func TestCreateUser(t *testing.T) {
 	err = repo.CreateUser(u)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectExec("INSERT INTO users(id, username, email) VALUES (?, ?, ?)").
+		WithArgs(u.ID, u.Username, u.Email).
+		WillReturnError(errors.New("insert error"))
+
+	err = repo.CreateUser(u)
+	assert.Error(t, err)
+	assert.Equal(t, "insert error", err.Error())
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestDeleteUser(t *testing.T) {
@@ -50,6 +61,16 @@ func TestDeleteUser(t *testing.T) {
 
 	err = repo.DeleteUser(id)
 	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectExec("DELETE FROM users WHERE id=?").
+		WithArgs(id).
+		WillReturnError(errors.New("delete error"))
+
+	err = repo.DeleteUser(id)
+	assert.Error(t, err)
+	assert.Equal(t, "delete error", err.Error())
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -74,6 +95,16 @@ func TestUpdateUser(t *testing.T) {
 	err = repo.UpdateUser(u)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectExec("UPDATE users SET username=?, email=?").
+		WithArgs(u.Username, u.Email).
+		WillReturnError(errors.New("update error"))
+
+	err = repo.UpdateUser(u)
+	assert.Error(t, err)
+	assert.Equal(t, "update error", err.Error())
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestFindAllUsers(t *testing.T) {
@@ -95,6 +126,16 @@ func TestFindAllUsers(t *testing.T) {
 	assert.Len(t, users, 2)
 	assert.Equal(t, "user1", users[0].Username)
 	assert.Equal(t, "user2", users[1].Username)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectQuery("SELECT * FROM users").
+		WillReturnError(errors.New("select error"))
+
+	users, err = repo.FindAllUsers()
+	assert.Error(t, err)
+	assert.Equal(t, "select error", err.Error())
+	assert.Empty(t, users)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -118,6 +159,17 @@ func TestFindUserByID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, u)
 	assert.Equal(t, "user1", u.Username)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectQuery("SELECT * FROM users WHERE id=?").
+		WithArgs(id).
+		WillReturnError(errors.New("select error"))
+
+	u, err = repo.FindUserByID(id)
+	assert.Error(t, err)
+	assert.Nil(t, u)
+	assert.Equal(t, "select error", err.Error())
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 

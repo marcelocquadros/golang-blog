@@ -2,6 +2,7 @@ package post
 
 import (
 	"database/sql"
+	"errors"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -34,6 +35,16 @@ func TestCreatePost(t *testing.T) {
 	err = repo.CreatePost(p)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectExec("INSERT INTO posts (id, title, content, image_url, user_id) VALUES(?, ?, ?, ?, ?)").
+		WithArgs(p.ID, p.Title, p.Content, p.ImageURL, p.UserID).
+		WillReturnError(errors.New("insert error"))
+
+	err = repo.CreatePost(p)
+	assert.Error(t, err)
+	assert.Equal(t, "insert error", err.Error())
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestUpdatePost(t *testing.T) {
@@ -58,6 +69,16 @@ func TestUpdatePost(t *testing.T) {
 	err = repo.UpdatePost(p)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectExec("UPDATE posts SET title=?, content=?, image_url=? WHERE id=?").
+		WithArgs(p.Title, p.Content, p.ImageURL, p.ID).
+		WillReturnError(errors.New("update error"))
+
+	err = repo.UpdatePost(p)
+	assert.Error(t, err)
+	assert.Equal(t, "update error", err.Error())
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestDeletePost(t *testing.T) {
@@ -76,6 +97,16 @@ func TestDeletePost(t *testing.T) {
 
 	err = repo.DeletePost(id)
 	assert.NoError(t, err)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectExec("DELETE FROM posts WHERE id=?").
+		WithArgs(id).
+		WillReturnError(errors.New("delete error"))
+
+	err = repo.DeletePost(id)
+	assert.Error(t, err)
+	assert.Equal(t, "delete error", err.Error())
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -99,6 +130,16 @@ func TestFindAllPosts(t *testing.T) {
 	assert.Equal(t, "Title 1", posts[0].Title)
 	assert.Equal(t, "Title 2", posts[1].Title)
 	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectQuery("SELECT * FROM posts").
+		WillReturnError(errors.New("select error"))
+
+	posts, err = repo.FindAllPosts()
+	assert.Error(t, err)
+	assert.Equal(t, "select error", err.Error())
+	assert.Empty(t, posts)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestFindPostsByID(t *testing.T) {
@@ -121,6 +162,17 @@ func TestFindPostsByID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, p)
 	assert.Equal(t, "Title 1", p.Title)
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	// Error case
+	mock.ExpectQuery("SELECT * FROM posts WHERE id=?").
+		WithArgs(id).
+		WillReturnError(errors.New("select error"))
+
+	p, err = repo.FindPostsByID(id)
+	assert.Error(t, err)
+	assert.Nil(t, p)
+	assert.Equal(t, "select error", err.Error())
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
