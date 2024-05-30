@@ -29,7 +29,10 @@ func (m *MockPostRepository) FindAllPosts() ([]post.Post, error) {
 	return args.Get(0).([]post.Post), args.Error(1)
 }
 
-func (m *MockPostRepository) FindPostsByID(id string) (*post.Post, error) {
+func (m *MockPostRepository) FindPostByID(id string) (*post.Post, error) {
 	args := m.Called(id)
+	if args.Error(1) != nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*post.Post), args.Error(1)
 }

@@ -13,6 +13,7 @@ var (
 	ErrInvalidContent  = errors.New("invalid content")
 	ErrInvalidImageURL = errors.New("invalid image url")
 	ErrInvalidUserID   = errors.New("invalid user id")
+	ErrPostNotFound    = errors.New("post not found")
 )
 
 type (
@@ -31,7 +32,7 @@ type (
 		UpdatePost(p *Post) error
 		DeletePost(id string) error
 		FindAllPosts() ([]Post, error)
-		FindPostsByID(id string) (*Post, error)
+		FindPostByID(id string) (*Post, error)
 	}
 )
 

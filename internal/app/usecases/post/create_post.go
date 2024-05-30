@@ -8,10 +8,10 @@ type (
 	}
 
 	CreatePostCmd struct {
-		Title    string `json:"title"`
-		Content  string `json:"content"`
-		ImageURL string `json:"image_url"`
-		UserID   string `json:"user_id"`
+		Title    string `json:"title" binding:"required"`
+		Content  string `json:"content" binding:"required"`
+		ImageURL string `json:"image_url" binding:"required,url"`
+		UserID   string `json:"user_id" binding:"required"`
 	}
 
 	CreatePostResponse struct {

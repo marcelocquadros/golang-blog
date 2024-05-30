@@ -11,6 +11,7 @@ var (
 	ErrInvalidEmail    = errors.New("invalid email")
 	ErrInvalidUsername = errors.New("invalid username")
 	ErrInvalidUserID   = errors.New("invalid id format")
+	ErrUserNotFound    = errors.New("invalid id format")
 )
 
 type (

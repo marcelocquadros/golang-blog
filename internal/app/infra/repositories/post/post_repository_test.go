@@ -158,7 +158,7 @@ func TestFindPostsByID(t *testing.T) {
 		WithArgs(id).
 		WillReturnRows(rows)
 
-	p, err := repo.FindPostsByID(id)
+	p, err := repo.FindPostByID(id)
 	assert.NoError(t, err)
 	assert.NotNil(t, p)
 	assert.Equal(t, "Title 1", p.Title)
@@ -169,7 +169,7 @@ func TestFindPostsByID(t *testing.T) {
 		WithArgs(id).
 		WillReturnError(errors.New("select error"))
 
-	p, err = repo.FindPostsByID(id)
+	p, err = repo.FindPostByID(id)
 	assert.Error(t, err)
 	assert.Nil(t, p)
 	assert.Equal(t, "select error", err.Error())
@@ -189,7 +189,7 @@ func TestFindPostsByIDNotFound(t *testing.T) {
 		WithArgs(id).
 		WillReturnError(sql.ErrNoRows)
 
-	p, err := repo.FindPostsByID(id)
+	p, err := repo.FindPostByID(id)
 	assert.NoError(t, err)
 	assert.Nil(t, p)
 	assert.NoError(t, mock.ExpectationsWereMet())

@@ -46,7 +46,7 @@ func (r postRepository) FindAllPosts() ([]post.Post, error) {
 	return posts, nil
 }
 
-func (r postRepository) FindPostsByID(id string) (*post.Post, error) {
+func (r postRepository) FindPostByID(id string) (*post.Post, error) {
 	post := post.Post{}
 	if err := r.db.Get(&post, "SELECT * FROM posts WHERE id=?", id); err != nil {
 		if err == sql.ErrNoRows {
