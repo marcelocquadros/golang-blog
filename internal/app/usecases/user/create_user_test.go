@@ -26,6 +26,7 @@ func TestCreateUser_Execute(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.NotEmpty(t, resp.ID)
+	mockRepo.AssertExpectations(t)
 
 }
 
@@ -39,12 +40,11 @@ func TestCreateUserError_Execute(t *testing.T) {
 		Email:    "invalidemail",
 	}
 
-	mockRepo.On("CreateUser", mock.AnythingOfType("*user.User")).Return(nil)
-
 	resp, err := createUserUseCase.Execute(cmd)
 
 	assert.Empty(t, resp)
 	assert.ErrorIs(t, user.ErrInvalidEmail, err)
 	assert.Equal(t, err.Error(), "invalid email")
+	mockRepo.AssertExpectations(t)
 
 }
