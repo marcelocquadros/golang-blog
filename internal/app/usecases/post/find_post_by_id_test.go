@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/marcelocquadros/blog/internal/app/domain/post"
+	"github.com/marcelocquadros/blog/internal/app/usecases/post/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestFindPostsByID_Execute(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewFindPostByID(mockRepo)
 
 	post := &post.Post{
@@ -37,7 +38,7 @@ func TestFindPostsByID_Execute(t *testing.T) {
 }
 
 func TestFindPostByID_ExecuteError(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewFindPostByID(mockRepo)
 	mockRepo.On("FindPostByID", mock.AnythingOfType("string")).Return(nil, errors.New("error"))
 	_, err := service.Execute("ids")
@@ -46,7 +47,7 @@ func TestFindPostByID_ExecuteError(t *testing.T) {
 }
 
 func TestFindPostByID_ExecuteErrorNotFound(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewFindPostByID(mockRepo)
 	mockRepo.On("FindPostByID", mock.AnythingOfType("string")).Return(nil, post.ErrPostNotFound)
 	_, err := service.Execute("id")

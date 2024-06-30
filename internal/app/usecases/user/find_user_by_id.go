@@ -9,11 +9,11 @@ type (
 		userRepository user.UserRepository
 	}
 
-	GetUserByID interface {
-		Execute(id string) (*GetByIDUserResponse, error)
+	FindUserByID interface {
+		Execute(id string) (*FindUserByIDResponse, error)
 	}
 
-	GetByIDUserResponse struct {
+	FindUserByIDResponse struct {
 		ID       string `json:"id"`
 		Username string `json:"username"`
 		Email    string `json:"email"`
@@ -24,7 +24,7 @@ func NewGetUserByID(r user.UserRepository) *findUserByID {
 	return &findUserByID{userRepository: r}
 }
 
-func (uc findUserByID) Execute(id string) (*GetByIDUserResponse, error) {
+func (uc findUserByID) Execute(id string) (*FindUserByIDResponse, error) {
 	u, err := uc.userRepository.FindUserByID(id)
 
 	if err != nil {
@@ -34,7 +34,7 @@ func (uc findUserByID) Execute(id string) (*GetByIDUserResponse, error) {
 		return nil, user.ErrUserNotFound
 	}
 
-	return &GetByIDUserResponse{
+	return &FindUserByIDResponse{
 		ID:       u.ID,
 		Username: u.Username,
 		Email:    u.Email,

@@ -1,4 +1,4 @@
-package post
+package mocks
 
 import (
 	"github.com/marcelocquadros/blog/internal/app/domain/post"

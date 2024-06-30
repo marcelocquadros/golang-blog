@@ -4,12 +4,13 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/marcelocquadros/blog/internal/app/usecases/post/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestCreatePost_Execute(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewCreatePost(mockRepo)
 
 	cmd := &CreatePostCmd{
@@ -28,7 +29,7 @@ func TestCreatePost_Execute(t *testing.T) {
 }
 
 func TestCreatePost_Execute_NewPostError(t *testing.T) {
-	service := NewCreatePost(new(MockPostRepository))
+	service := NewCreatePost(new(mocks.MockPostRepository))
 
 	cmd := &CreatePostCmd{
 		Title:    "",
@@ -43,7 +44,7 @@ func TestCreatePost_Execute_NewPostError(t *testing.T) {
 }
 
 func TestCreatePost_Execute_CreatePostError(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewCreatePost(mockRepo)
 
 	cmd := &CreatePostCmd{

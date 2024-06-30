@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	"github.com/marcelocquadros/blog/internal/app/domain/post"
+	"github.com/marcelocquadros/blog/internal/app/usecases/post/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFindAllPosts_Execute(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewFindAllPosts(mockRepo)
 
 	posts := []post.Post{
@@ -37,7 +38,7 @@ func TestFindAllPosts_Execute(t *testing.T) {
 }
 
 func TestFindAllPosts_ExecuteError(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewFindAllPosts(mockRepo)
 
 	mockRepo.On("FindAllPosts").Return([]post.Post{}, errors.New("error"))

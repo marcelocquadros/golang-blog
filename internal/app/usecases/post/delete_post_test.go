@@ -4,12 +4,13 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/marcelocquadros/blog/internal/app/usecases/post/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestDeletePost_Execute(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewDeletePost(mockRepo)
 
 	mockRepo.On("DeletePost", mock.AnythingOfType("string")).Return(nil)
@@ -20,7 +21,7 @@ func TestDeletePost_Execute(t *testing.T) {
 }
 
 func TestDeletePost_ExecuteError(t *testing.T) {
-	mockRepo := new(MockPostRepository)
+	mockRepo := new(mocks.MockPostRepository)
 	service := NewDeletePost(mockRepo)
 
 	mockRepo.On("DeletePost", mock.AnythingOfType("string")).Return(errors.New("DeletePost error"))
